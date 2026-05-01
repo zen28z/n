@@ -1,34 +1,33 @@
-import yfinance as yf
-import json
-import math
+name: Daily Stock Update
 
-def fetch_and_calculate():
-    # 1. 株価と為替の取得
-    nvda_ticker = yf.Ticker("NVDA")
-    usdjpy_ticker = yf.Ticker("JPY=X")
+on:
+  schedule:
+    # 毎日 UTC 21:00 (日本時間 午前6:00頃) に実行。米国株引け後に該当します。
+    - cron: '0 21 * * *'
+  workflow_dispatch: # 手動実行用ボタンも有効化
 
-    # 最新の終値を取得
-    nvda_price = nvda_ticker.history(period="1d")['Close'].iloc[0]
-    usdjpy_price = usdjpy_ticker.history(period="1d")['Close'].iloc[0]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    # 2. 定数の設定
-    SHARES = 241
-    COST_BASIS = 7590421
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    # 3. 計算（円単位で切り捨て）
-    market_value = math.floor(nvda_price * usdjpy_price * SHARES)
-    profit_loss = market_value - COST_BASIS
+      - name: Install dependencies
+        run: pip install yfinance
 
-    # 4. JSONとして保存
-    data = {
-        "nvda_price": round(nvda_price, 2),
-        "usd_jpy": round(usdjpy_price, 2),
-        "market_value": market_value,
-        "profit_loss": profit_loss
-    }
+      - name: Run Python script
+        run: python update_data.py
 
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-if __name__ == "__main__":
-    fetch_and_calculate()
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data.json
+          # 変更がある場合のみコミットしてプッシュ
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update daily stock data" && git push)
