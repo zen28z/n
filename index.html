@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>保有資産ダッシュボード</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .dashboard { border: 1px solid #ccc; padding: 20px; max-width: 400px; border-radius: 8px; }
+        .positive { color: green; font-weight: bold; }
+        .negative { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <h2>ポートフォリオ状況</h2>
+    <p>Nvidia 1株: $<span id="nvda-price">--</span></p>
+    <p>ドル円: <span id="usd-jpy">--</span>円</p>
+    <hr>
+    <p>時価評価額: <span id="market-value">--</span>円</p>
+    <p>評価損益: <span id="profit-loss">--</span>円</p>
+</div>
+
+<script>
+    // ご指定のフォーマット関数: {数値を10000で割った商}万{数値を10000で割った余り}
+    function formatMan(value) {
+        const isNegative = value < 0;
+        const absValue = Math.floor(Math.abs(value));
+        const quotient = Math.floor(absValue / 10000);
+        const remainder = absValue % 10000;
+        
+        const sign = isNegative ? "-" : "";
+        
+        // 余りが0の場合は「万」だけで終わらせ、そうでない場合はゼロ埋め（例: 0500）して綺麗に表示します
+        if (quotient === 0) return `${sign}${remainder}`;
+        if (remainder === 0) return `${sign}${quotient}万`;
+        
+        return `${sign}${quotient}万${remainder.toString().padStart(4, '0')}`;
+    }
+
+    // JSONデータを取得して画面に反映
+    async function loadData() {
+        try {
+            // 自動生成された data.json を読み込む
+            const response = await fetch('data.json');
+            const data = await response.json();
+
+            document.getElementById('nvda-price').textContent = data.nvda_price;
+            document.getElementById('usd-jpy').textContent = data.usd_jpy;
+            document.getElementById('market-value').textContent = formatMan(data.market_value);
+            
+            const plElement = document.getElementById('profit-loss');
+            plElement.textContent = formatMan(data.profit_loss);
+            
+            // プラスマイナスで色を変更
+            if (data.profit_loss > 0) {
+                plElement.classList.add('positive');
+                plElement.textContent = "+" + plElement.textContent;
+            } else if (data.profit_loss < 0) {
+                plElement.classList.add('negative');
+            }
+
+        } catch (error) {
+            console.error('データの読み込みに失敗しました:', error);
+        }
+    }
+
+    // ページ読み込み時に実行
+    loadData();
+</script>
+
+</body>
+</html>
