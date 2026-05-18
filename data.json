@@ -1,9 +1,9 @@
 {
-  "nvda_price": 225.32,
-  "nvda_price_prev": 235.74,
-  "usd_jpy": 158.71,
+  "nvda_price": 222.32,
+  "nvda_price_prev": 225.32,
+  "usd_jpy": 158.74,
   "usd_jpy_prev": 158.38,
-  "market_value": 8618126,
-  "profit_loss": 1027705,
-  "day_over_day_change": -380084
+  "market_value": 8505203,
+  "profit_loss": 914782,
+  "day_over_day_change": -95275
 }
